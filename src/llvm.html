@@ -237,46 +237,84 @@
         <article role="main" id="furo-main-content">
           <section id="llvm-objects">
 <h1>LLVM Objects<a class="headerlink" href="#llvm-objects" title="Link to this heading">¶</a></h1>
+<p>These classes mirror LLVM’s internal IR objects and are passed as parameters
+to every <a class="reference internal" href="obfuscation.html#omvll.ObfuscationConfig" title="omvll.ObfuscationConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">ObfuscationConfig</span></code></a> callback. They are read-only;
+O-MVLL does not allow mutating IR through these bindings.</p>
 <section id="module">
 <h2>Module<a class="headerlink" href="#module" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="omvll.Module">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">omvll.</span></span><span class="sig-name descname"><span class="pre">Module</span></span><a class="headerlink" href="#omvll.Module" title="Link to this definition">¶</a></dt>
-<dd><p>This class mirrors <code class="docutils literal notranslate"><span class="pre">llvm::Module</span></code></p>
+<dd><p>Mirrors <code class="docutils literal notranslate"><span class="pre">llvm::Module</span></code>. Represents a single compilation unit (one
+source file). Passed as the first argument to every callback.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="omvll.Module.data_layout">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">data_layout</span></span><a class="headerlink" href="#omvll.Module.data_layout" title="Link to this definition">¶</a></dt>
-<dd><p>Get the data layout string for the module’s target platform.</p>
+<dd><p>The data layout string describing the target platform’s pointer sizes,
+endianness, and alignment rules
+(e.g. <code class="docutils literal notranslate"><span class="pre">e-m:o-i64:64-i128:128-n32:64-S128</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="omvll.Module.dump">
 <span class="sig-name descname"><span class="pre">dump</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#omvll.Module" title="omvll.Module"><span class="pre">omvll.Module</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#omvll.Module.dump" title="Link to this definition">¶</a></dt>
-<dd><p>This function dumps the IR instructions of the current module in the
-file provided in the second parameter.</p>
+<dd><p>Write the full LLVM IR of this module to <em>file</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>str</em>) – Output file path.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="omvll.Module.identifier">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">identifier</span></span><a class="headerlink" href="#omvll.Module.identifier" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>The module identifier — typically the full file path as recorded by
+the compiler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="omvll.Module.instruction_count">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">instruction_count</span></span><a class="headerlink" href="#omvll.Module.instruction_count" title="Link to this definition">¶</a></dt>
-<dd><p>The number of non-debug IR instructions in the module.</p>
+<dd><p>Total number of non-debug IR instructions across all functions in the
+module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="omvll.Module.name">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#omvll.Module.name" title="Link to this definition">¶</a></dt>
-<dd><p>The short “name” of this module</p>
+<dd><p>The short name of the module (last component of the identifier).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="omvll.Module.source_filename">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">source_filename</span></span><a class="headerlink" href="#omvll.Module.source_filename" title="Link to this definition">¶</a></dt>
-<dd><p>The source filename of the module</p>
+<dd><p>The source filename recorded in the module’s debug info.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -287,33 +325,41 @@ file provided in the second parameter.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="omvll.Function">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">omvll.</span></span><span class="sig-name descname"><span class="pre">Function</span></span><a class="headerlink" href="#omvll.Function" title="Link to this definition">¶</a></dt>
-<dd><p>This class mirrors <code class="docutils literal notranslate"><span class="pre">llvm::Function</span></code></p>
+<dd><p>Mirrors <code class="docutils literal notranslate"><span class="pre">llvm::Function</span></code>. Represents a single function within a
+module. Passed as the second argument to every callback.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="omvll.Function.demangled_name">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">demangled_name</span></span><a class="headerlink" href="#omvll.Function.demangled_name" title="Link to this definition">¶</a></dt>
-<dd><p>The demangled name of the function.
-For instance:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">_JNIEnv::NewStringUTF(char</span> <span class="pre">const*)</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">main</span></code></p></li>
-</ul>
+<dd><p>The human-readable demangled name,
+e.g. <code class="docutils literal notranslate"><span class="pre">_JNIEnv::NewStringUTF(char</span> <span class="pre">const*)</span></code> or <code class="docutils literal notranslate"><span class="pre">main</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="omvll.Function.name">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#omvll.Function.name" title="Link to this definition">¶</a></dt>
-<dd><p>The (mangled) name of the function.
-For instance:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">_ZN7_JNIEnv12NewStringUTFEPKc</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">main</span></code></p></li>
-</ul>
+<dd><p>The mangled name of the function as it appears in the object file,
+e.g. <code class="docutils literal notranslate"><span class="pre">_ZN7_JNIEnv12NewStringUTFEPKc</span></code> or <code class="docutils literal notranslate"><span class="pre">main</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="omvll.Function.nb_instructions">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nb_instructions</span></span><a class="headerlink" href="#omvll.Function.nb_instructions" title="Link to this definition">¶</a></dt>
-<dd><p>Return the number of IR instructions.</p>
+<dd><p>The number of IR instructions in the function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -324,18 +370,23 @@ For instance:</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="omvll.Struct">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">omvll.</span></span><span class="sig-name descname"><span class="pre">Struct</span></span><a class="headerlink" href="#omvll.Struct" title="Link to this definition">¶</a></dt>
-<dd><p>This class mirrors <code class="docutils literal notranslate"><span class="pre">llvm::StructType</span></code></p>
+<dd><p>Mirrors <code class="docutils literal notranslate"><span class="pre">llvm::StructType</span></code>. Passed to
+<a class="reference internal" href="obfuscation.html#omvll.ObfuscationConfig.obfuscate_struct_access" title="omvll.ObfuscationConfig.obfuscate_struct_access"><code class="xref py py-meth docutils literal notranslate"><span class="pre">obfuscate_struct_access()</span></code></a> when the
+pass encounters an access to a struct field.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="omvll.Struct.name">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#omvll.Struct.name" title="Link to this definition">¶</a></dt>
-<dd><p>The name of the structure or the class.</p>
-<p>For instance:</p>
+<dd><p>The name of the structure or class as recorded in the IR, e.g.:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">struct.std::__ndk1::basic_string&lt;char&gt;</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">struct._JNIEnv</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">struct.JNINativeInterface</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">class.SecretString</span></code></p></li>
 </ul>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -346,17 +397,29 @@ For instance:</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="omvll.GlobalVariable">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">omvll.</span></span><span class="sig-name descname"><span class="pre">GlobalVariable</span></span><a class="headerlink" href="#omvll.GlobalVariable" title="Link to this definition">¶</a></dt>
-<dd><p>This class mirrors <code class="docutils literal notranslate"><span class="pre">llvm::GlobalVariable</span></code></p>
+<dd><p>Mirrors <code class="docutils literal notranslate"><span class="pre">llvm::GlobalVariable</span></code>. Passed to
+<a class="reference internal" href="obfuscation.html#omvll.ObfuscationConfig.obfuscate_variable_access" title="omvll.ObfuscationConfig.obfuscate_variable_access"><code class="xref py py-meth docutils literal notranslate"><span class="pre">obfuscate_variable_access()</span></code></a> when the
+pass encounters a reference to a global variable.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="omvll.GlobalVariable.demangled_name">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">demangled_name</span></span><a class="headerlink" href="#omvll.GlobalVariable.demangled_name" title="Link to this definition">¶</a></dt>
 <dd><p>The demangled name of the global variable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="omvll.GlobalVariable.name">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#omvll.GlobalVariable.name" title="Link to this definition">¶</a></dt>
 <dd><p>The mangled name of the global variable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -467,7 +530,7 @@ For instance:</p>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=93a5b1f4"></script>
+</div><script src="../_static/documentation_options.js?v=0bcad24b"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>

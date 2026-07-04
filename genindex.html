@@ -234,7 +234,7 @@
           
 <section class="genindex-section">
   <h1 id="index">Index</h1>
-  <div class="genindex-jumpbox"><a href="#A"><strong>A</strong></a> | <a href="#B"><strong>B</strong></a> | <a href="#C"><strong>C</strong></a> | <a href="#D"><strong>D</strong></a> | <a href="#F"><strong>F</strong></a> | <a href="#G"><strong>G</strong></a> | <a href="#I"><strong>I</strong></a> | <a href="#L"><strong>L</strong></a> | <a href="#M"><strong>M</strong></a> | <a href="#N"><strong>N</strong></a> | <a href="#O"><strong>O</strong></a> | <a href="#R"><strong>R</strong></a> | <a href="#S"><strong>S</strong></a> | <a href="#V"><strong>V</strong></a></div>
+  <div class="genindex-jumpbox"><a href="#A"><strong>A</strong></a> | <a href="#B"><strong>B</strong></a> | <a href="#C"><strong>C</strong></a> | <a href="#D"><strong>D</strong></a> | <a href="#E"><strong>E</strong></a> | <a href="#F"><strong>F</strong></a> | <a href="#G"><strong>G</strong></a> | <a href="#I"><strong>I</strong></a> | <a href="#L"><strong>L</strong></a> | <a href="#M"><strong>M</strong></a> | <a href="#N"><strong>N</strong></a> | <a href="#O"><strong>O</strong></a> | <a href="#P"><strong>P</strong></a> | <a href="#R"><strong>R</strong></a> | <a href="#S"><strong>S</strong></a> | <a href="#V"><strong>V</strong></a></div>
 </section>
 <section id="A" class="genindex-section">
   <h2>A</h2>
@@ -258,8 +258,12 @@
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="src/obfuscation.html#omvll.ObfuscationConfig.basic_block_duplicate">basic_block_duplicate() (omvll.ObfuscationConfig method)</a>
 </li>
+        <li><a href="src/obfuscation.html#omvll.BasicBlockDuplicateSkip">BasicBlockDuplicateSkip (class in omvll)</a>
+</li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="src/obfuscation.html#omvll.BasicBlockDuplicateWithProbability">BasicBlockDuplicateWithProbability (class in omvll)</a>
+</li>
         <li><a href="src/obfuscation.html#omvll.ObfuscationConfig.break_control_flow">break_control_flow() (omvll.ObfuscationConfig method)</a>
 </li>
         <li><a href="src/obfuscation.html#omvll.BreakControlFlowOpt">BreakControlFlowOpt (class in omvll)</a>
@@ -304,17 +308,31 @@
   </tr></table>
 </section>
 
+<section id="E" class="genindex-section">
+  <h2>E</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="src/config.html#omvll.Phase.Early">Early (omvll.Phase attribute)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
 <section id="F" class="genindex-section">
   <h2>F</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="src/obfuscation.html#omvll.ObfuscationConfig.flatten_cfg">flatten_cfg() (omvll.ObfuscationConfig method)</a>
 </li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="src/llvm.html#omvll.Function">Function (class in omvll)</a>
 </li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="src/obfuscation.html#omvll.ObfuscationConfig.function_outline">function_outline() (omvll.ObfuscationConfig method)</a>
+</li>
+        <li><a href="src/obfuscation.html#omvll.FunctionOutlineSkip">FunctionOutlineSkip (class in omvll)</a>
+</li>
+        <li><a href="src/obfuscation.html#omvll.FunctionOutlineWithProbability">FunctionOutlineWithProbability (class in omvll)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -324,6 +342,12 @@
   <h2>G</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="src/config.html#omvll.OMVLLConfig.global_func_exclude">global_func_exclude (omvll.OMVLLConfig property)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="src/config.html#omvll.OMVLLConfig.global_mod_exclude">global_mod_exclude (omvll.OMVLLConfig property)</a>
+</li>
         <li><a href="src/llvm.html#omvll.GlobalVariable">GlobalVariable (class in omvll)</a>
 </li>
     </ul></td>
@@ -338,9 +362,15 @@
 </li>
         <li><a href="src/obfuscation.html#omvll.ObfuscationConfig.indirect_branch">indirect_branch() (omvll.ObfuscationConfig method)</a>
 </li>
+        <li><a href="src/obfuscation.html#omvll.ObfuscationConfig.indirect_call">indirect_call() (omvll.ObfuscationConfig method)</a>
+</li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="src/obfuscation.html#omvll.ObfuscationConfig.indirect_call">indirect_call() (omvll.ObfuscationConfig method)</a>
+        <li><a href="src/obfuscation.html#omvll.IndirectBranchOpt">IndirectBranchOpt (class in omvll)</a>
+</li>
+        <li><a href="src/obfuscation.html#omvll.IndirectCallOpt">IndirectCallOpt (class in omvll)</a>
+</li>
+        <li><a href="src/config.html#omvll.OMVLLConfig.inline_jni_wrappers">inline_jni_wrappers (omvll.OMVLLConfig property)</a>
 </li>
         <li><a href="src/llvm.html#omvll.Module.instruction_count">instruction_count (omvll.Module property)</a>
 </li>
@@ -351,6 +381,10 @@
 <section id="L" class="genindex-section">
   <h2>L</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="src/config.html#omvll.Phase.Last">Last (omvll.Phase attribute)</a>
+</li>
+    </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="src/versioning.html#omvll.LLVM_VERSION">LLVM_VERSION (omvll attribute)</a>
 </li>
@@ -406,19 +440,43 @@
 </li>
         <li><a href="src/obfuscation.html#omvll.ObfuscationConfig">ObfuscationConfig (class in omvll)</a>
 </li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="src/versioning.html#omvll.OMVLL_VERSION">OMVLL_VERSION (omvll attribute)</a>
 </li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="src/versioning.html#omvll.OMVLL_VERSION_FULL">OMVLL_VERSION_FULL (omvll attribute)</a>
 </li>
+        <li><a href="src/config.html#omvll.OMVLLConfig">OMVLLConfig (class in omvll)</a>
+</li>
         <li><a href="src/obfuscation.html#omvll.OpaqueConstantsBool">OpaqueConstantsBool (class in omvll)</a>
+</li>
+        <li><a href="src/obfuscation.html#omvll.OpaqueConstantsExcludeSet">OpaqueConstantsExcludeSet (class in omvll)</a>
 </li>
         <li><a href="src/obfuscation.html#omvll.OpaqueConstantsLowerLimit">OpaqueConstantsLowerLimit (class in omvll)</a>
 </li>
         <li><a href="src/obfuscation.html#omvll.OpaqueConstantsSet">OpaqueConstantsSet (class in omvll)</a>
 </li>
         <li><a href="src/obfuscation.html#omvll.OpaqueConstantsSkip">OpaqueConstantsSkip (class in omvll)</a>
+</li>
+        <li><a href="src/config.html#omvll.OMVLLConfig.output_folder">output_folder (omvll.OMVLLConfig property)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="P" class="genindex-section">
+  <h2>P</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="src/config.html#omvll.Pass">Pass (class in omvll)</a>
+</li>
+        <li><a href="src/config.html#omvll.OMVLLConfig.pass_phases">pass_phases (omvll.OMVLLConfig property)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="src/config.html#omvll.Phase">Phase (class in omvll)</a>
+</li>
+        <li><a href="src/config.html#omvll.OMVLLConfig.probability_seed">probability_seed (omvll.OMVLLConfig property)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -438,6 +496,8 @@
   <h2>S</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="src/config.html#omvll.OMVLLConfig.shuffle_functions">shuffle_functions (omvll.OMVLLConfig property)</a>
+</li>
         <li><a href="src/llvm.html#omvll.Module.source_filename">source_filename (omvll.Module property)</a>
 </li>
         <li><a href="src/obfuscation.html#omvll.StringEncOptDefault">StringEncOptDefault (class in omvll)</a>
@@ -446,6 +506,8 @@
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="src/obfuscation.html#omvll.StringEncOptLocal">StringEncOptLocal (class in omvll)</a>
+</li>
         <li><a href="src/obfuscation.html#omvll.StringEncOptReplace">StringEncOptReplace (class in omvll)</a>
 </li>
         <li><a href="src/obfuscation.html#omvll.StringEncOptSkip">StringEncOptSkip (class in omvll)</a>
@@ -500,7 +562,7 @@
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=93a5b1f4"></script>
+</div><script src="_static/documentation_options.js?v=0bcad24b"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>
