@@ -20,6 +20,13 @@ on:
       - .github/workflows/termux-arm64.yml
       - scripts/termux-arm64/**
       - src/CMakeLists.txt
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/termux-arm64.yml
+      - scripts/termux-arm64/**
+      - src/CMakeLists.txt
 
 permissions:
   contents: read
