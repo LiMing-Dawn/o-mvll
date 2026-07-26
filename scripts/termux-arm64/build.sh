@@ -104,6 +104,7 @@ if [[ -z "$python_android_driver" ]]; then
   echo "Could not locate CPython's Android build driver" >&2
   exit 1
 fi
+python3 "$python_android_driver" build build
 python3 "$python_android_driver" build "$python_host"
 
 python_library="$(find "$python_prefix/lib" -maxdepth 1 \( -type f -o -type l \) -name 'libpython3.*.so' -print -quit)"
