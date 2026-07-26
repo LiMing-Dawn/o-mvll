@@ -91,7 +91,20 @@ download \
 tar -xJf "$work_root/Python-$python_version.tar.xz" -C "$work_root"
 mv "$work_root/Python-$python_version" "$python_src"
 export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
-python3 "$python_src/Platforms/Android" build "$python_host"
+python_android_driver=""
+for candidate in \
+  "$python_src/Android/android.py" \
+  "$python_src/Platforms/Android"; do
+  if [[ -f "$candidate" ]]; then
+    python_android_driver="$candidate"
+    break
+  fi
+done
+if [[ -z "$python_android_driver" ]]; then
+  echo "Could not locate CPython's Android build driver" >&2
+  exit 1
+fi
+python3 "$python_android_driver" build "$python_host"
 
 python_library="$(find "$python_prefix/lib" -maxdepth 1 \( -type f -o -type l \) -name 'libpython3.*.so' -print -quit)"
 python_include="$(find "$python_prefix/include" -maxdepth 1 -type d -name 'python3*' -print -quit)"
