@@ -29,6 +29,8 @@ spdlog_src="$work_root/spdlog-$spdlog_version"
 spdlog_build="$work_root/spdlog-build"
 spdlog_prefix="$work_root/spdlog-prefix"
 pybind11_src="$work_root/pybind11-$pybind11_version"
+pybind11_build="$work_root/pybind11-build"
+pybind11_prefix="$work_root/pybind11-prefix"
 omvll_build="$work_root/omvll-build"
 stage="$repo_root/dist/termux-arm64"
 archive="$repo_root/dist/omvll-termux-arm64-$ndk_revision-api$android_api.tar.xz"
@@ -120,6 +122,11 @@ download \
   "https://github.com/pybind/pybind11/archive/refs/tags/v$pybind11_version.tar.gz" \
   "$work_root/pybind11.tar.gz"
 tar -xzf "$work_root/pybind11.tar.gz" -C "$work_root"
+cmake -S "$pybind11_src" -B "$pybind11_build" -G Ninja \
+  -DCMAKE_INSTALL_PREFIX="$pybind11_prefix" \
+  -DPYBIND11_INSTALL=ON \
+  -DPYBIND11_TEST=OFF
+cmake --build "$pybind11_build" --target install
 
 log "Building spdlog $spdlog_version for Android ARM64"
 download \
@@ -150,7 +157,7 @@ cmake -S "$repo_root/src" -B "$omvll_build" -G Ninja \
   -DCMAKE_CXX_COMPILER="$cross_cxx" \
   -DCMAKE_STRIP="$cross_strip" \
   -DLLVM_DIR="$llvm_out/lib/cmake/llvm" \
-  -Dpybind11_DIR="$pybind11_src/tools" \
+  -Dpybind11_DIR="$pybind11_prefix/share/cmake/pybind11" \
   -DPYBIND11_NOPYTHON=ON \
   -Dspdlog_DIR="$spdlog_prefix/lib/cmake/spdlog" \
   -DOMVLL_ABI=CustomAndroid \
