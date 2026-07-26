@@ -70,7 +70,7 @@ PLATFORM=bionic \
 TARGET="$target" \
 ANDROID_API="$android_api" \
 PROJECTS="clang;lld" \
-EXTRA_CMAKE_FLAGS="-DLLVM_ENABLE_PIC=ON -DLLVM_EXPORT_SYMBOLS_FOR_PLUGINS=ON" \
+EXTRA_CMAKE_FLAGS="-DLLVM_ENABLE_PIC=ON -DLLVM_EXPORT_SYMBOLS_FOR_PLUGINS=ON -DLLVM_ENABLE_ZSTD=OFF" \
 bash "$work_root/build-dynamic-llvm.sh"
 
 dynamic_clang="$(find "$llvm_out/bin" -maxdepth 1 -type f -name 'clang-[0-9]*' -print -quit)"
