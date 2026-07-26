@@ -137,6 +137,7 @@ cmake -S "$repo_root/src" -B "$omvll_build" -G Ninja \
   -DCMAKE_STRIP="$cross_strip" \
   -DLLVM_DIR="$llvm_out/lib/cmake/llvm" \
   -Dpybind11_DIR="$pybind11_src/tools" \
+  -DPYBIND11_NOPYTHON=ON \
   -Dspdlog_DIR="$spdlog_prefix/lib/cmake/spdlog" \
   -DOMVLL_ABI=CustomAndroid \
   -DOMVLL_CROSS_PYTHON_INCLUDE_DIR="$python_include" \
