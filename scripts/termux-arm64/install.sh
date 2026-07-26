@@ -30,9 +30,7 @@ bin_dir="$host_dir/bin"
 mkdir -p "$install_root/lib" "$install_root/python"
 
 install -m 0755 "$script_dir/payload/bin/clang-21-omvll" "$bin_dir/clang-21-omvll"
-install -m 0755 "$script_dir/payload/lib/libOMVLL.so" "$install_root/lib/libOMVLL.so"
-find "$script_dir/payload/lib" -maxdepth 1 -type f ! -name libOMVLL.so -exec \
-  install -m 0755 '{}' "$install_root/lib/" ';'
+cp -a "$script_dir/payload/lib/." "$install_root/lib/"
 cp -a "$script_dir/payload/python/." "$install_root/python/"
 
 python_stdlib="$(find "$install_root/python" -mindepth 1 -maxdepth 1 -type d -name 'python3*' -print -quit)"
