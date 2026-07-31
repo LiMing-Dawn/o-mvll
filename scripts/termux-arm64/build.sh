@@ -82,6 +82,7 @@ if [[ -z "$dynamic_clang" ]]; then
 fi
 
 ndk_toolchain="$ndk_dir/toolchains/llvm/prebuilt/linux-x86_64"
+target_runtime_lib="$ndk_toolchain/sysroot/usr/lib/aarch64-linux-android"
 cross_cc="$ndk_toolchain/bin/${target}${android_api}-clang"
 cross_cxx="$ndk_toolchain/bin/${target}${android_api}-clang++"
 cross_strip="$ndk_toolchain/bin/llvm-strip"
@@ -187,17 +188,73 @@ cp "$repo_root/scripts/termux-arm64/README.md" "$stage/README.md"
 chmod +x "$stage/install.sh" "$stage/payload/bin/clang-21-omvll"
 
 while IFS= read -r needed; do
-  candidate="$(find "$ndk_toolchain" -type f -name "$needed" -print -quit)"
-  if [[ -n "$candidate" ]]; then
-    cp -L "$candidate" "$stage/payload/lib/$needed"
+  candidate="$(find "$target_runtime_lib" -type f -name "$needed" -print -quit)"
+  if [[ -z "$candidate" ]]; then
+    echo "Could not find the AArch64 runtime dependency: $needed" >&2
+    exit 1
   fi
+  cp -L "$candidate" "$stage/payload/lib/$needed"
 done < <(
   "$ndk_toolchain/bin/llvm-readelf" -d "$stage/payload/bin/clang-21-omvll" |
     sed -n 's/.*Shared library: \[\([^]]*\)\].*/\1/p' |
-    grep -E '^(libc\+\+_shared|libunwind)\.so$' || true
+    grep -E '^(libc\+\+_shared|libunwind)\.so
+{
+  echo "NDK=$ndk_revision"
+  echo "ANDROID_API=$android_api"
+  echo "LLVM_CUSTOM_COMMIT=$llvm_custom_commit"
+  echo
+  file "$stage/payload/bin/clang-21-omvll"
+  file "$stage/payload/lib/libOMVLL.so"
+  echo
+  echo "ELF machines:"
+  for elf in "${staged_elfs[@]}"; do
+    printf '%s: ' "$(basename "$elf")"
+    "$ndk_toolchain/bin/llvm-readelf" -h "$elf" |
+      sed -n 's/^[[:space:]]*Machine:[[:space:]]*//p'
+  done
+  echo
+  echo "clang NEEDED:"
+  "$ndk_toolchain/bin/llvm-readelf" -d "$stage/payload/bin/clang-21-omvll" |
+    grep 'Shared library'
+  echo
+  echo "O-MVLL NEEDED:"
+  "$ndk_toolchain/bin/llvm-readelf" -d "$stage/payload/lib/libOMVLL.so" |
+    grep 'Shared library'
+  echo
+  echo "pass-plugin entry point:"
+  "$ndk_toolchain/bin/llvm-nm" -D "$stage/payload/lib/libOMVLL.so" |
+    grep 'llvmGetPassPluginInfo'
+} | tee "$verify"
+
+if grep -q 'statically linked' "$verify"; then
+  echo "The staged Clang is still fully static and cannot load pass plugins" >&2
+  exit 1
+fi
+if ! grep -q 'llvmGetPassPluginInfo' "$verify"; then
+  echo "The O-MVLL pass-plugin entry point is missing" >&2
+  exit 1
+fi
+
+tar -C "$(dirname "$stage")" -cJf "$archive" "$(basename "$stage")"
+sha256sum "$archive" | tee "$archive.sha256"
+log "Bundle ready: $archive"
+ || true
 )
 
 log "Verifying Android ELF metadata and plugin entry point"
+staged_elfs=(
+  "$stage/payload/bin/clang-21-omvll"
+  "$stage/payload/lib/"*.so*
+)
+for elf in "${staged_elfs[@]}"; do
+  if ! "$ndk_toolchain/bin/llvm-readelf" -h "$elf" |
+       grep -q 'Machine:.*AArch64'; then
+    echo "Staged runtime is not AArch64: $elf" >&2
+    "$ndk_toolchain/bin/llvm-readelf" -h "$elf" >&2
+    exit 1
+  fi
+done
+
 verify="$stage/VERIFY.txt"
 {
   echo "NDK=$ndk_revision"
