@@ -8,6 +8,7 @@
 #include <chrono>
 #include <random>
 #include <string>
+#include <vector>
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Config/llvm-config.h"
@@ -59,6 +60,15 @@ size_t reg2mem(llvm::Function &F);
 void shuffleFunctions(llvm::Module &M);
 bool isModuleGloballyExcluded(llvm::Module *M);
 bool isFunctionGloballyExcluded(llvm::Function *F);
+
+// Returns the source-level annotations attached to `F` via
+// `__attribute__((annotate("...")))`. These are read from the module's
+// `@llvm.global.annotations` global. The result is cached per module.
+const std::vector<std::string> &getFunctionAnnotations(const llvm::Function *F);
+
+// Returns true if `F` carries the given source-level annotation (exact match).
+bool functionHasAnnotation(const llvm::Function *F, llvm::StringRef Annotation);
+
 bool isCoroutine(llvm::Function *F);
 bool containsSwiftErrorAlloca(const llvm::BasicBlock &BB);
 bool isEHBlock(const llvm::BasicBlock &BB);

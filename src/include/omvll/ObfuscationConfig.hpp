@@ -66,7 +66,8 @@ struct ObfuscationConfig {
                              const std::vector<std::string> &ModuleExcludes,
                              const std::vector<std::string> &FunctionExcludes,
                              const std::vector<std::string> &FunctionIncludes,
-                             int Probability) = 0;
+                             int Probability,
+                             const std::string &Annotation) = 0;
 
   virtual bool hasReportDiffOverride() { return false; };
   virtual void reportDiff(const std::string &Pass, const std::string &Original,

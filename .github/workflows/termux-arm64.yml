@@ -19,7 +19,7 @@ on:
     paths:
       - .github/workflows/termux-arm64.yml
       - scripts/termux-arm64/**
-      - src/CMakeLists.txt
+      - src/**
 
 permissions:
   contents: read

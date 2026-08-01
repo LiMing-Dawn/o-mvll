@@ -463,7 +463,8 @@ bool PyObfuscationConfig::defaultConfig(
     llvm::Module *M, llvm::Function *F,
     const std::vector<std::string> &ModuleExcludes,
     const std::vector<std::string> &FunctionExcludes,
-    const std::vector<std::string> &FunctionIncludes, int Probability) {
+    const std::vector<std::string> &FunctionIncludes, int Probability,
+    const std::string &Annotation) {
   // Exclude modules.
   if (!ModuleExcludes.empty() &&
       llvm::count_if(ModuleExcludes, [&](const auto &ExcludedModule) {
@@ -482,12 +483,28 @@ bool PyObfuscationConfig::defaultConfig(
     return false;
   }
 
+  // Source-level annotation opt-out: a negated annotation (e.g. "!arithmetic")
+  // always wins over any include, so it is checked before the include lists.
+  if (!Annotation.empty() &&
+      functionHasAnnotation(F, "!" + Annotation)) {
+    SDEBUG("defaultConfig: Function {} is excluded by annotation '!{}'",
+           F->getName(), Annotation);
+    return false;
+  }
+
   // Include functions.
   if (!FunctionIncludes.empty() &&
       llvm::count_if(FunctionIncludes, [&](const auto &IncludedFunction) {
         return F->getName().contains(IncludedFunction);
       }) != 0) {
     SDEBUG("defaultConfig: Function {} is added", F->getName());
+    return true;
+  }
+
+  // Source-level annotation opt-in.
+  if (!Annotation.empty() && functionHasAnnotation(F, Annotation)) {
+    SDEBUG("defaultConfig: Function {} is added by annotation '{}'",
+           F->getName(), Annotation);
     return true;
   }
 

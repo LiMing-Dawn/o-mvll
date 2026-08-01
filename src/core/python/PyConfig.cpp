@@ -565,18 +565,24 @@ void OMVLLCtor(py::module_ &m) {
 
          - Skips if *module* matches any pattern in *module_excludes*.
          - Skips if *function* matches any pattern in *function_excludes*.
+         - Skips if *function* carries the negated source annotation
+           ``!<annotation>`` (e.g. ``!arithmetic``). This opt-out always wins.
          - Enables unconditionally if *function* matches any pattern in
            *function_includes*.
+         - Enables if *function* carries the *annotation* source annotation,
+           declared as ``__attribute__((annotate("<annotation>")))``.
          - Otherwise enables with the given *probability* (0–100).
 
-         Typical use as a callback fallback:
+         Every argument after *function* is optional, so a purely
+         annotation-driven policy can be expressed as:
 
          .. code-block:: python
 
-            def break_control_flow(self, mod, func):
-                return omvll.ObfuscationConfig.default_config(
-                    self, mod, func, [], [], [], 10
-                )
+            def obfuscate_arithmetic(self, mod, func):
+                if omvll.ObfuscationConfig.default_config(
+                    self, mod, func, annotation="arithmetic"):
+                    return omvll.ArithmeticOpt(rounds=2)
+                return omvll.ArithmeticOpt(False)
 
          :param module_excludes: Module name substrings to exclude.
          :type module_excludes: list[str]
@@ -586,10 +592,17 @@ void OMVLLCtor(py::module_ &m) {
          :type function_includes: list[str]
          :param probability: Percentage chance (0–100) to apply the pass.
          :type probability: int
+         :param annotation: Source-level annotation name that opts a function in
+             (or, prefixed with ``!``, out of) the pass. Empty disables
+             annotation matching.
+         :type annotation: str
          :rtype: bool
          )delim",
-           "module"_a, "function"_a, "module_excludes"_a, "function_excludes"_a,
-           "function_includes"_a, "probability"_a);
+           "module"_a, "function"_a,
+           "module_excludes"_a = std::vector<std::string>{},
+           "function_excludes"_a = std::vector<std::string>{},
+           "function_includes"_a = std::vector<std::string>{},
+           "probability"_a = 0, "annotation"_a = std::string{});
 }
 
 std::unique_ptr<py::module_> initOMVLLCore(py::dict Modules) {

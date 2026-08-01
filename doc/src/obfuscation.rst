@@ -7,6 +7,40 @@ Config
 .. autoclass:: omvll.ObfuscationConfig
   :members: obfuscate_string, break_control_flow, flatten_cfg, obfuscate_struct_access, obfuscate_variable_access, obfuscate_constants, obfuscate_arithmetic, anti_hooking, indirect_branch, indirect_call, basic_block_duplicate, function_outline, report_diff, default_config
 
+Driving passes from source annotations
+######################################
+
+Instead of maintaining per-pass lists of function names in the Python config,
+a function can opt into (or out of) a pass directly in the source, next to the
+code it protects, using ``__attribute__((annotate("...")))``:
+
+.. code-block:: c
+
+   __attribute__((annotate("arithmetic")))    // opt this function into arithmetic obfuscation
+   __attribute__((annotate("flattening")))    // ...and control-flow flattening
+   int verify_license(const char *token) { ... }
+
+   __attribute__((annotate("!flattening")))   // opt out, even if a list includes it
+   int hot_path(void) { ... }
+
+The annotation name is an arbitrary string chosen by the config author; a
+matching name passed to :py:meth:`~omvll.ObfuscationConfig.default_config`
+via the ``annotation`` keyword enables the pass for annotated functions:
+
+.. code-block:: python
+
+   def obfuscate_arithmetic(self, mod, func):
+       if omvll.ObfuscationConfig.default_config(self, mod, func,
+                                                 annotation="arithmetic"):
+           return omvll.ArithmeticOpt(rounds=2)
+       return omvll.ArithmeticOpt(False)
+
+Precedence, from strongest to weakest: ``module_excludes`` →
+``function_excludes`` → the negated annotation ``!<annotation>`` →
+``function_includes`` → the annotation ``<annotation>`` → ``probability``. A
+negated annotation therefore always wins, even over an explicit include list or
+a probability of 100.
+
 Template
 ########
 

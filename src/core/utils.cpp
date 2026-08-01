@@ -9,9 +9,12 @@
 #include <optional>
 #include <unistd.h>
 
+#include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/Hashing.h"
 #include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -572,6 +575,76 @@ bool isModuleGloballyExcluded(Module *M) {
 
 bool isFunctionGloballyExcluded(Function *F) {
   return is_contained(Config.GlobalFunctionExclude, F->getName());
+}
+
+// Walk `@llvm.global.annotations` and collect, for every annotated function,
+// the list of annotation strings produced by `__attribute__((annotate("..")))`.
+// The layout of each entry is a struct whose first operand points to the
+// annotated value and whose second operand points to the annotation C-string.
+static void
+parseModuleAnnotations(const Module &M,
+                       DenseMap<const Function *, std::vector<std::string>> &Out) {
+  const GlobalVariable *GA =
+      M.getGlobalVariable("llvm.global.annotations", /*AllowInternal=*/true);
+  if (!GA || !GA->hasInitializer())
+    return;
+
+  const auto *Entries = dyn_cast<ConstantArray>(GA->getInitializer());
+  if (!Entries)
+    return;
+
+  for (const Value *Op : Entries->operands()) {
+    const auto *Entry = dyn_cast<ConstantStruct>(Op);
+    if (!Entry || Entry->getNumOperands() < 2)
+      continue;
+
+    // First operand: the annotated value; only function annotations matter here.
+    const auto *F = dyn_cast<Function>(Entry->getOperand(0)->stripPointerCasts());
+    if (!F)
+      continue;
+
+    // Second operand: pointer to the annotation string global.
+    const auto *StrGV =
+        dyn_cast<GlobalVariable>(Entry->getOperand(1)->stripPointerCasts());
+    if (!StrGV || !StrGV->hasInitializer())
+      continue;
+
+    const auto *Str = dyn_cast<ConstantDataArray>(StrGV->getInitializer());
+    if (!Str || !Str->isCString())
+      continue;
+
+    Out[F].push_back(Str->getAsCString().str());
+  }
+}
+
+const std::vector<std::string> &getFunctionAnnotations(const Function *F) {
+  // Cache the annotations of the most recently seen module. The pass pipeline
+  // processes one module at a time, so this avoids re-parsing the annotations
+  // global on every callback while keeping the cache bounded.
+  static const Module *CachedModule = nullptr;
+  static DenseMap<const Function *, std::vector<std::string>> Cache;
+  static const std::vector<std::string> Empty;
+
+  if (!F)
+    return Empty;
+
+  const Module *M = F->getParent();
+  if (M != CachedModule) {
+    Cache.clear();
+    CachedModule = M;
+    if (M)
+      parseModuleAnnotations(*M, Cache);
+  }
+
+  auto It = Cache.find(F);
+  return It == Cache.end() ? Empty : It->second;
+}
+
+bool functionHasAnnotation(const Function *F, StringRef Annotation) {
+  for (const std::string &A : getFunctionAnnotations(F))
+    if (Annotation == A)
+      return true;
+  return false;
 }
 
 bool isCoroutine(Function *F) {

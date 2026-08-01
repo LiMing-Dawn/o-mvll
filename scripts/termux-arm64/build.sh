@@ -196,49 +196,8 @@ while IFS= read -r needed; do
   cp -L "$candidate" "$stage/payload/lib/$needed"
 done < <(
   "$ndk_toolchain/bin/llvm-readelf" -d "$stage/payload/bin/clang-21-omvll" |
-    sed -n 's/.*Shared library: \[\([^]]*\)\].*/\1/p' |
-    grep -E '^(libc\+\+_shared|libunwind)\.so
-{
-  echo "NDK=$ndk_revision"
-  echo "ANDROID_API=$android_api"
-  echo "LLVM_CUSTOM_COMMIT=$llvm_custom_commit"
-  echo
-  file "$stage/payload/bin/clang-21-omvll"
-  file "$stage/payload/lib/libOMVLL.so"
-  echo
-  echo "ELF machines:"
-  for elf in "${staged_elfs[@]}"; do
-    printf '%s: ' "$(basename "$elf")"
-    "$ndk_toolchain/bin/llvm-readelf" -h "$elf" |
-      sed -n 's/^[[:space:]]*Machine:[[:space:]]*//p'
-  done
-  echo
-  echo "clang NEEDED:"
-  "$ndk_toolchain/bin/llvm-readelf" -d "$stage/payload/bin/clang-21-omvll" |
-    grep 'Shared library'
-  echo
-  echo "O-MVLL NEEDED:"
-  "$ndk_toolchain/bin/llvm-readelf" -d "$stage/payload/lib/libOMVLL.so" |
-    grep 'Shared library'
-  echo
-  echo "pass-plugin entry point:"
-  "$ndk_toolchain/bin/llvm-nm" -D "$stage/payload/lib/libOMVLL.so" |
-    grep 'llvmGetPassPluginInfo'
-} | tee "$verify"
-
-if grep -q 'statically linked' "$verify"; then
-  echo "The staged Clang is still fully static and cannot load pass plugins" >&2
-  exit 1
-fi
-if ! grep -q 'llvmGetPassPluginInfo' "$verify"; then
-  echo "The O-MVLL pass-plugin entry point is missing" >&2
-  exit 1
-fi
-
-tar -C "$(dirname "$stage")" -cJf "$archive" "$(basename "$stage")"
-sha256sum "$archive" | tee "$archive.sha256"
-log "Bundle ready: $archive"
- || true
+    sed -n 's/.*Shared library: \\[\\([^]]*\\)\\].*/\\1/p' |
+    grep -E '^(libc\\+\\+_shared|libunwind)\\.so$' || true
 )
 
 log "Verifying Android ELF metadata and plugin entry point"
@@ -263,6 +222,13 @@ verify="$stage/VERIFY.txt"
   echo
   file "$stage/payload/bin/clang-21-omvll"
   file "$stage/payload/lib/libOMVLL.so"
+  echo
+  echo "ELF machines:"
+  for elf in "${staged_elfs[@]}"; do
+    printf '%s: ' "$(basename "$elf")"
+    "$ndk_toolchain/bin/llvm-readelf" -h "$elf" |
+      sed -n 's/^[[:space:]]*Machine:[[:space:]]*//p'
+  done
   echo
   echo "clang NEEDED:"
   "$ndk_toolchain/bin/llvm-readelf" -d "$stage/payload/bin/clang-21-omvll" |
