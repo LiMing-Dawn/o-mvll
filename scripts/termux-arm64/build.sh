@@ -196,8 +196,8 @@ while IFS= read -r needed; do
   cp -L "$candidate" "$stage/payload/lib/$needed"
 done < <(
   "$ndk_toolchain/bin/llvm-readelf" -d "$stage/payload/bin/clang-21-omvll" |
-    sed -n 's/.*Shared library: \\[\\([^]]*\\)\\].*/\\1/p' |
-    grep -E '^(libc\\+\\+_shared|libunwind)\\.so$' || true
+    sed -n 's/.*Shared library: \[\([^]]*\)\].*/\1/p' |
+    grep -E '^(libc\+\+_shared|libunwind)\.so$' || true
 )
 
 log "Verifying Android ELF metadata and plugin entry point"
