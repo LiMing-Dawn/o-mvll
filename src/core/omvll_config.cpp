@@ -33,11 +33,13 @@ static std::optional<Pass> nameToPass(const std::string &InternalName) {
       {"omvll::OpaqueConstants",       Pass::OpaqueConstants},
       {"omvll::Arithmetic",            Pass::Arithmetic},
       {"omvll::IndirectBranch",        Pass::IndirectBranch},
+      {"omvll::BasicBlockSplit",       Pass::BasicBlockSplit},
       {"omvll::IndirectCall",          Pass::IndirectCall},
       {"omvll::BasicBlockDuplicate",   Pass::BasicBlockDuplicate},
       {"omvll::FunctionOutline",       Pass::FunctionOutline},
       {"omvll::InlineJni",             Pass::InlineJni},
       {"omvll::ShuffleFunctions",      Pass::ShuffleFunctions},
+      {"omvll::ShuffleOps",            Pass::ShuffleOps},
   };
   auto It = Table.find(InternalName);
   if (It == Table.end())
