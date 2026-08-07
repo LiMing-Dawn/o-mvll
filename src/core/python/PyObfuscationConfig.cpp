@@ -423,6 +423,43 @@ PyObfuscationConfig::basicBlockDuplicate(llvm::Module *M, llvm::Function *F) {
   return BasicBlockDuplicateSkip();
 }
 
+BasicBlockSplitOpt PyObfuscationConfig::basicBlockSplit(llvm::Module *M,
+                                                        llvm::Function *F) {
+  py::gil_scoped_acquire gil;
+  py::function override = py::get_override(
+      static_cast<const ObfuscationConfig *>(this), "basic_block_split");
+  if (override) {
+    try {
+      py::object out = override(M, F);
+      if (out.is_none())
+        return BasicBlockSplitSkip();
+
+      if (py::isinstance<py::bool_>(out))
+        throw py::value_error(
+            "basic_block_split: boolean value not accepted.");
+
+      if (py::isinstance<py::int_>(out)) {
+        unsigned Probability = out.cast<py::int_>();
+        if (Probability < 0 || Probability > 100)
+          throw py::value_error(
+              "basic_block_split: probability must be within [0, 100].");
+        return BasicBlockSplitWithProbability(Probability);
+      }
+
+      if (py::detail::cast_is_temporary_value_reference<
+              BasicBlockSplitOpt>::value) {
+        static pybind11::detail::override_caster_t<BasicBlockSplitOpt> caster;
+        return pybind11::detail::cast_ref<BasicBlockSplitOpt>(std::move(out),
+                                                              caster);
+      }
+      return pybind11::detail::cast_safe<BasicBlockSplitOpt>(std::move(out));
+    } catch (const std::exception &Exc) {
+      fatalError("Error in 'basic_block_split': '"s + Exc.what() + "'");
+    }
+  }
+  return BasicBlockSplitSkip();
+}
+
 FunctionOutlineOpt PyObfuscationConfig::functionOutline(llvm::Module *M,
                                                         llvm::Function *F) {
   py::gil_scoped_acquire gil;
@@ -459,12 +496,50 @@ FunctionOutlineOpt PyObfuscationConfig::functionOutline(llvm::Module *M,
   return FunctionOutlineSkip();
 }
 
+ShuffleOpsOpt PyObfuscationConfig::shuffleOps(llvm::Module *M,
+                                              llvm::Function *F) {
+  py::gil_scoped_acquire gil;
+  const auto *Base = static_cast<const ObfuscationConfig *>(this);
+  py::function override = py::get_override(Base, "shuffle_ops");
+  if (override) {
+    try {
+      py::object out = override(M, F);
+      if (out.is_none())
+        return ShuffleOpsOpt(false);
+
+      if (py::isinstance<py::bool_>(out)) {
+        bool Value = out.cast<py::bool_>();
+        return ShuffleOpsOpt(Value);
+      }
+
+      if (py::isinstance<py::int_>(out)) {
+        uint64_t MinBlockSize = out.cast<py::int_>();
+        return ShuffleOpsOpt(MinBlockSize);
+      }
+
+      if (detail::cast_is_temporary_value_reference<ShuffleOpsOpt>::value) {
+        static detail::override_caster_t<ShuffleOpsOpt> caster;
+        return detail::cast_ref<ShuffleOpsOpt>(std::move(out), caster);
+      }
+
+      return detail::cast_safe<ShuffleOpsOpt>(std::move(out));
+    } catch (const std::exception &Exc) {
+      fatalError("Error in 'shuffle_ops': '"s + Exc.what() + "'");
+    }
+  }
+  return ShuffleOpsOpt(false);
+}
+
 bool PyObfuscationConfig::defaultConfig(
     llvm::Module *M, llvm::Function *F,
     const std::vector<std::string> &ModuleExcludes,
     const std::vector<std::string> &FunctionExcludes,
     const std::vector<std::string> &FunctionIncludes, int Probability,
     const std::string &Annotation) {
+      
+  [[maybe_unused]] llvm::StringRef FunctionName =
+      F ? F->getName() : "<none>";
+
   // Exclude modules.
   if (!ModuleExcludes.empty() &&
       llvm::count_if(ModuleExcludes, [&](const auto &ExcludedModule) {
@@ -475,11 +550,11 @@ bool PyObfuscationConfig::defaultConfig(
   }
 
   // Exclude functions.
-  if (!FunctionExcludes.empty() &&
+  if (F && !FunctionExcludes.empty() &&
       llvm::count_if(FunctionExcludes, [&](const auto &ExcludedFunction) {
         return F->getName().contains(ExcludedFunction);
       }) != 0) {
-    SDEBUG("defaultConfig: Function {} is excluded", F->getName());
+    SDEBUG("defaultConfig: Function {} is excluded", FunctionName);
     return false;
   }
 
@@ -488,33 +563,33 @@ bool PyObfuscationConfig::defaultConfig(
   if (!Annotation.empty() &&
       functionHasAnnotation(F, "!" + Annotation)) {
     SDEBUG("defaultConfig: Function {} is excluded by annotation '!{}'",
-           F->getName(), Annotation);
+           FunctionName, Annotation);
     return false;
   }
 
   // Include functions.
-  if (!FunctionIncludes.empty() &&
+  if (F && !FunctionIncludes.empty() &&
       llvm::count_if(FunctionIncludes, [&](const auto &IncludedFunction) {
         return F->getName().contains(IncludedFunction);
       }) != 0) {
-    SDEBUG("defaultConfig: Function {} is added", F->getName());
+    SDEBUG("defaultConfig: Function {} is added", FunctionName);
     return true;
   }
 
   // Source-level annotation opt-in.
   if (!Annotation.empty() && functionHasAnnotation(F, Annotation)) {
     SDEBUG("defaultConfig: Function {} is added by annotation '{}'",
-           F->getName(), Annotation);
+           FunctionName, Annotation);
     return true;
   }
 
   if (RandomGenerator::checkProbability(Probability)) {
     SDEBUG("defaultConfig: Function {} is added because of probability",
-           F->getName());
+           FunctionName);
     return true;
   } else {
     SDEBUG("defaultConfig: Function {} is not added because of probability",
-           F->getName());
+           FunctionName);
     return false;
   }
 }

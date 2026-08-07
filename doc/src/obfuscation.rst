@@ -5,7 +5,7 @@ Config
 ------
 
 .. autoclass:: omvll.ObfuscationConfig
-  :members: obfuscate_string, break_control_flow, flatten_cfg, obfuscate_struct_access, obfuscate_variable_access, obfuscate_constants, obfuscate_arithmetic, anti_hooking, indirect_branch, indirect_call, basic_block_duplicate, function_outline, report_diff, default_config
+  :members: obfuscate_string, break_control_flow, flatten_cfg, obfuscate_struct_access, obfuscate_variable_access, obfuscate_constants, obfuscate_arithmetic, anti_hooking, indirect_branch, indirect_call, basic_block_duplicate, basic_block_split, function_outline, report_diff, default_config
 
 Driving passes from source annotations
 ######################################
@@ -81,6 +81,9 @@ Template
        def basic_block_duplicate(self, mod: omvll.Module, func: omvll.Function):
            return omvll.BasicBlockDuplicateWithProbability(10)
 
+       def basic_block_split(self, mod: omvll.Module, func: omvll.Function):
+           return omvll.BasicBlockSplitWithProbability(10)
+
 
    @lru_cache(maxsize=1)
    def omvll_get_config() -> omvll.ObfuscationConfig:
@@ -105,6 +108,13 @@ Basic Block Duplicate
 .. autoclass:: omvll.BasicBlockDuplicateSkip
 
 .. autoclass:: omvll.BasicBlockDuplicateWithProbability
+
+Basic Block Split
+#################
+
+.. autoclass:: omvll.BasicBlockSplitSkip
+
+.. autoclass:: omvll.BasicBlockSplitWithProbability
 
 Control-Flow Breaking
 #####################
