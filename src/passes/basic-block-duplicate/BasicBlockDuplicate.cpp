@@ -154,9 +154,11 @@ PreservedAnalyses BasicBlockDuplicate::run(Module &M,
   SINFO("[{}] Executing on module {}", name(), M.getName());
   ScopedTrace TracePassModule(name(), name());
 
+  BasicBlockDuplicateOpt Opt =
+      Config.getUserConfig()->basicBlockDuplicate(&M, nullptr);
+
   for (Function &F : M) {
-    BasicBlockDuplicateOpt Opt =
-        Config.getUserConfig()->basicBlockDuplicate(&M, &F);
+    Opt = Config.getUserConfig()->basicBlockDuplicate(&M, &F);
 
     if (isCoroutine(&F))
       continue;
