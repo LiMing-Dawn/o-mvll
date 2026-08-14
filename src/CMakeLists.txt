@@ -55,7 +55,7 @@ if(OMVLL_CROSS_PYTHON_INCLUDE_DIR AND OMVLL_CROSS_PYTHON_LIBRARY)
   set(Python3_VERSION "cross")
   set(Python3_EXECUTABLE "")
 else()
-  find_package(Python3 REQUIRED COMPONENTS Development Interpreter)
+  find_package(Python3 COMPONENTS Development Interpreter)
 endif()
 
 find_package(spdlog REQUIRED CONFIG)
