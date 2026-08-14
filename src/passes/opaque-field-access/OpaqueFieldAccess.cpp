@@ -138,7 +138,7 @@ bool OpaqueFieldAccess::runOnConstantExprRead(BasicBlock &BB, LoadInst &Load,
     addMetadata(*Op, {MetaObf(OpaqueCst), MetaObf(OpaqueOp, 2LLU)});
 
   Value *NewGEP = IRB.CreateInBoundsGEP(
-      ElTy, IRB.CreateBitCast(GV, ElTy->getPointerTo()), OpaqueOffset);
+      ElTy, IRB.CreateBitCast(GV, PointerType::get(ElTy->getContext(), /*AddressSpace=*/0)), OpaqueOffset);
   Load.setOperand(0, NewGEP);
   return true;
 }
@@ -221,7 +221,7 @@ bool OpaqueFieldAccess::runOnConstantExprWrite(BasicBlock &BB, StoreInst &Store,
     addMetadata(*Op, {MetaObf(OpaqueCst), MetaObf(OpaqueOp, 2LLU)});
 
   Value *NewGEP = IRB.CreateInBoundsGEP(
-      ElTy, IRB.CreateBitCast(GV, ElTy->getPointerTo()), OpaqueOffset);
+      ElTy, IRB.CreateBitCast(GV, PointerType::get(ElTy->getContext(), /*AddressSpace=*/0)), OpaqueOffset);
   Store.setOperand(1, NewGEP);
   return true;
 }

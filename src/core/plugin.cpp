@@ -49,12 +49,16 @@ static const std::vector<std::pair<std::string, PassFactory>> &getPassRegistry()
        [](ModulePassManager &M) { M.addPass(omvll::BasicBlockDuplicate()); }},
       {omvll::ControlFlowFlattening::name().str(),
        [](ModulePassManager &M) { M.addPass(omvll::ControlFlowFlattening()); }},
+      {omvll::BasicBlockSplit::name().str(),
+       [](ModulePassManager &M) { M.addPass(omvll::BasicBlockSplit()); }},
       {omvll::BreakControlFlow::name().str(),
        [](ModulePassManager &M) { M.addPass(omvll::BreakControlFlow()); }},
       {omvll::OpaqueConstants::name().str(),
        [](ModulePassManager &M) { M.addPass(omvll::OpaqueConstants()); }},
       {omvll::Arithmetic::name().str(),
        [](ModulePassManager &M) { M.addPass(omvll::Arithmetic()); }},
+      {omvll::ShuffleOps::name().str(),
+       [](ModulePassManager &M) { M.addPass(omvll::ShuffleOps()); }},
 #ifdef OMVLL_EXPERIMENTAL
       // ObjCleaner must be the last pass as function's name
       // could be changed, which can be confusing for the user.

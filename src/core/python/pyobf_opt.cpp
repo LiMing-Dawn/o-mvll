@@ -251,6 +251,25 @@ py::module_ &py_init_obf_opt(py::module_ &m) {
     )delim")
     .def(py::init<unsigned>(), "probability"_a);
 
+  // BasicBlock Split
+  py::class_<BasicBlockSplitSkip>(m, "BasicBlockSplitSkip",
+    R"delim(
+    Option for the :py:meth:`~omvll.ObfuscationConfig.basic_block_split`
+    callback. Disables the pass for the current function.
+    )delim")
+    .def(py::init<>());
+
+  py::class_<BasicBlockSplitWithProbability>(m, "BasicBlockSplitWithProbability",
+    R"delim(
+    Option for the :py:meth:`~omvll.ObfuscationConfig.basic_block_split`
+    callback. Selects basic blocks to split in half with the given probability.
+
+    :param probability: Percentage chance (0–100) for each basic block to be
+       split. ``0`` means never, ``100`` splits every eligible block.
+    :type probability: int
+    )delim")
+    .def(py::init<unsigned>(), "probability"_a);
+  
   // Function Outline
   py::class_<FunctionOutlineSkip>(m, "FunctionOutlineSkip",
     R"delim(
@@ -270,6 +289,20 @@ py::module_ &py_init_obf_opt(py::module_ &m) {
     :type probability: int
     )delim")
     .def(py::init<unsigned>(), "probability"_a);
+
+  // ShuffleOps
+  py::class_<ShuffleOpsOpt>(m, "ShuffleOpsOpt",
+    R"delim(
+    Option for the :py:meth:`~omvll.ObfuscationConfig.shuffle_ops` callback.
+    Controls instruction-level reordering within basic blocks.
+
+    :param min_block_size: Minimum number of movable instructions a block must
+                           contain before shuffling is attempted. Blocks with
+                           fewer movable instructions are left untouched.
+                           Defaults to 4.
+    :type min_block_size: int
+    )delim")
+    .def(py::init<uint64_t>(), "min_block_size"_a = ShuffleOpsOpt::DefaultMinBlockSize);
 
   return m;
   // clang-format on

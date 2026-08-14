@@ -426,7 +426,7 @@ size_t reg2mem(Function &F) {
 
   CastInst *BCI = new BitCastInst(
       Constant::getNullValue(Type::getInt32Ty(F.getContext())),
-      Type::getInt32Ty(F.getContext()), "reg2mem alloca point", &*I);
+      Type::getInt32Ty(F.getContext()), "reg2mem alloca point", I);
 
 #if LLVM_VERSION_MAJOR > 18
   auto AllocaInsertionPoint = BCI->getIterator();

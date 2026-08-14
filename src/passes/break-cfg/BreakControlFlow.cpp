@@ -70,7 +70,8 @@ static const uint8_t ARMAsmBreakingStub[] = {
     0xF0, 0xFF, 0xF0, 0xE7, // raw bytes
     0xFE, 0xFF, 0xFF, 0xE7, // raw bytes
     // Pad with NOPs
-    0x00, 0xBF, 0x00, 0xBF, 0x00, 0xBF, 0x00, 0xBF, 0x00, 0xBF, 0x00, 0xBF};
+    0x00, 0xBF, 0x00, 0xBF, 0x00, 0xBF,
+    0x00, 0xBF, 0x00, 0xBF, 0x00, 0xBF};
 
 bool BreakControlFlow::runOnFunction(Function &F) {
   if (F.getInstructionCount() == 0)
@@ -196,7 +197,7 @@ bool BreakControlFlow::runOnFunction(Function &F) {
 
   // Cast integral address to ptr.
   FunctionType *FTy = ClonedF->getFunctionType();
-  PointerType *FTyPtrTy = PointerType::getUnqual(FTy);
+  PointerType *FTyPtrTy = PointerType::getUnqual(FTy->getContext());
 
   Value *FuncPtr = IRB.CreateIntToPtr(FAddr, FTyPtrTy);
   CallInst *Call = IRB.CreateCall(FTy, FuncPtr, Args);

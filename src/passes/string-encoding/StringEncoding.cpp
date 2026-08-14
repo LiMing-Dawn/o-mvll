@@ -128,12 +128,12 @@ std::pair<Instruction *, Instruction *>
 materializeConstantExpression(Instruction *Point, ConstantExpr *CE) {
   auto *Inst = CE->getAsInstruction();
   auto *Prev = Inst;
-  Inst->insertBefore(Point);
+  Inst->insertBefore(Point->getIterator());
 
   Value *Expr = Inst->getOperand(0);
   while (isa<ConstantExpr>(Expr)) {
     auto *NewInst = cast<ConstantExpr>(Expr)->getAsInstruction();
-    NewInst->insertBefore(Prev);
+    NewInst->insertBefore(Prev->getIterator());
     Prev->setOperand(0, NewInst);
     Expr = NewInst->getOperand(0);
     Prev = NewInst;
@@ -372,7 +372,7 @@ static bool isABICriticalGlobal(const GlobalVariable &G) {
     StringRef S = G.getSection();
     if (S.contains("__objc_") ||
         S.contains("__cfstring") ||
-        S.contains("__const") && S.contains("objc"))
+        (S.contains("__const") && S.contains("objc")))
       return true;
   }
   return false;
