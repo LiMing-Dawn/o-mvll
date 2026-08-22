@@ -11,6 +11,7 @@
 #include "llvm/ADT/ScopeExit.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/IR/CFG.h"
+#include "llvm/IR/Comdat.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Instructions.h"
@@ -67,6 +68,10 @@ bool IndirectBranch::process(Function &F, const DataLayout &DL,
   JumpTable->setUnnamedAddr(GlobalValue::UnnamedAddr::None);
   if (Triple(M.getTargetTriple()).isiOS())
     JumpTable->setSection("__DATA,__const");
+
+  // Place the function table inside the same Comdat group as F.
+  if (Comdat *C = F.getComdat())
+    JumpTable->setComdat(C);
 
   DenseMap<BasicBlock *, unsigned> BlockToIdx;
   auto Cleanup = make_scope_exit([&]() {

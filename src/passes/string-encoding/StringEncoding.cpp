@@ -583,9 +583,9 @@ bool StringEncoding::encodeStrings(Function &F, ObfuscationConfig &UserConfig) {
            std::get_if<StringEncOptGlobal>(EncInfoOpt.get()) == nullptr))
         continue;
 
-      // Skip Objective-C method names/selectors with local encoding.
-      if (isObjCMethodName(*G) &&
-          std::get_if<StringEncOptLocal>(EncInfoOpt.get()))
+      // Skip ObjC selectors and class refs. Linker and runtime
+      // read these sections directly, so the bytes must stay intact
+      if (isObjCMethodName(*G))
         continue;
 
       if (std::get_if<StringEncOptLocal>(EncInfoOpt.get())) {
