@@ -48,7 +48,6 @@ static const uint8_t AArch64AsmBreakingStub[] = {
     0xF1, 0xFF, 0xF2, 0xA2, // raw bytes
     0xF8, 0xFF, 0xE2, 0xC2  // raw bytes
 };
-
 static constexpr size_t ARMInstSize = 4;
 static constexpr size_t ARMFunctionAlignment = 0x10;
 
@@ -73,6 +72,11 @@ static const uint8_t ARMAsmBreakingStub[] = {
     0x00, 0xBF, 0x00, 0xBF, 0x00, 0xBF,
     0x00, 0xBF, 0x00, 0xBF, 0x00, 0xBF};
 
+static bool hasSwiftErrorArg(const Function &F) {
+  return any_of(F.args(),
+                [](const Argument &Arg) { return Arg.hasSwiftErrorAttr(); });
+}
+
 bool BreakControlFlow::runOnFunction(Function &F) {
   if (F.getInstructionCount() == 0)
     return false;
@@ -84,6 +88,16 @@ bool BreakControlFlow::runOnFunction(Function &F) {
   if (F.isVarArg())
     return false;
 
+  if (isCoroutine(&F)) {
+    return false;
+  }
+
+  if (F.getCallingConv() == CallingConv::Swift && hasSwiftErrorArg(F)) {
+    SDEBUG("[{}] Skipping {}: swifterror argument forbids musttail", name(),
+           F.getName());
+    return false;
+  }
+
   const auto &TT = Triple(F.getParent()->getTargetTriple());
   if (!(TT.isAArch64() || TT.isARM() || TT.isThumb()))
     return false;
@@ -91,10 +105,14 @@ bool BreakControlFlow::runOnFunction(Function &F) {
   SINFO("[{}] Visiting function {}", name(), F.getName());
   ScopedTrace TracePassFunc(F.getName(), name());
 
+  // Function::deleteBody() resets the linkage to external
+  const GlobalValue::LinkageTypes Linkage = F.getLinkage();
+
   ValueToValueMapTy VMap;
   ClonedCodeInfo CCI;
   Function *ClonedF = CloneFunction(&F, VMap, &CCI);
   F.deleteBody();
+  F.setLinkage(Linkage);
 
   Function &Trampoline = F;
   const size_t InstSize = TT.isAArch64() ? AArch64InstSize : ARMInstSize;
@@ -205,10 +223,10 @@ bool BreakControlFlow::runOnFunction(Function &F) {
   CallingConv::ID CallConv = ClonedF->getCallingConv();
   Call->setCallingConv(CallConv);
 
-  // Only force musttail for swiftcc. This is the only convention
-  // that uses x8 as an implicit sret register on AArch64, which
-  // the trampoline's jump target overwrites.
-  if (CallConv == CallingConv::Swift) {
+  // Force musttail for swiftcc, which uses x8 as an implicit sret register on
+  // AArch64 that the trampoline's jump target overwrites, and for swifttailcc,
+  // where a tail call is part of the ABI
+  if (CallConv == CallingConv::Swift || CallConv == CallingConv::SwiftTail) {
     Call->setTailCallKind(CallInst::TCK_MustTail);
   }
 
