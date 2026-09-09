@@ -28,6 +28,64 @@ namespace omvll {
 static constexpr auto LRand48FunctionName = "lrand48";
 static constexpr unsigned MaxDuplicatedBlocksPerFunction = 500;
 
+// A duplicated block is split in three: `Head` keeps the PHI nodes and hosts
+// the coinflip, while the rest of the original block lives in two twins (the
+// original tail and its clone)
+static bool canBypassHead(const BasicBlock &Head, const BasicBlock &Twin) {
+  if (!Head.phis().empty())
+    return false;
+
+  for (const Instruction &I : Twin)
+    for (const Value *Op : I.operands())
+      if (const auto *OpI = dyn_cast<Instruction>(Op))
+        if (OpI->getParent() == &Head)
+          return false;
+
+  return true;
+}
+
+// Chain the cloned blocks together
+static void redirectClonesToClonedSuccessors(
+    ArrayRef<BasicBlock *> Clones,
+    const DenseMap<BasicBlock *, BasicBlock *> &CloneOf) {
+  for (BasicBlock *Clone : Clones) {
+    Instruction *Term = Clone->getTerminator();
+
+    // Successors of these terminators are tied to blockaddress operands or to
+    // EH constraints, leave them alone
+    if (isa<IndirectBrInst>(Term) || isa<CallBrInst>(Term))
+      continue;
+
+    for (unsigned Idx = 0, E = Term->getNumSuccessors(); Idx != E; ++Idx) {
+      BasicBlock *Succ = Term->getSuccessor(Idx);
+      if (Succ->isEHPad())
+        continue;
+
+      auto It = CloneOf.find(Succ);
+      if (It == CloneOf.end())
+        continue;
+
+      BasicBlock *SuccClone = It->second;
+      if (SuccClone == Clone || !canBypassHead(*Succ, *SuccClone))
+        continue;
+
+      // `Clone` becomes a predecessor of `SuccClone`, taking over the incoming
+      // values that used to flow in through `Succ`.
+      bool HasIncomingFromHead =
+          llvm::all_of(SuccClone->phis(), [&](const PHINode &PN) {
+            return PN.getBasicBlockIndex(Succ) >= 0;
+          });
+      if (!HasIncomingFromHead)
+        continue;
+
+      for (PHINode &PN : SuccClone->phis())
+        PN.addIncoming(PN.getIncomingValueForBlock(Succ), Clone);
+
+      Term->setSuccessor(Idx, SuccClone);
+    }
+  }
+}
+
 static Value *buildCoinflip(IRBuilder<> &Builder, Module &M) {
     LLVMContext &Ctx = M.getContext();
 
@@ -63,6 +121,11 @@ bool BasicBlockDuplicate::process(Function &F, LLVMContext &Ctx,
   if (ToDup.empty())
     return false;
 
+  // Maps a duplicated block onto the clone of its tail, so that cloned blocks
+  // can be chained together once every block has been processed
+  DenseMap<BasicBlock *, BasicBlock *> CloneOf;
+  SmallVector<BasicBlock *, 64> Clones;
+
   IRBuilder<> Builder(Ctx);
   for (BasicBlock *BB : ToDup) {
     BasicBlock::iterator SplitIt = BB->getFirstNonPHIIt();
@@ -96,9 +159,8 @@ bool BasicBlockDuplicate::process(Function &F, LLVMContext &Ctx,
       }
     }
 
-    // TODO: Should also need a mapping cloned block to their successors, and
-    // adjust the cloned block terminator (if its successors have been cloned
-    // too).
+    CloneOf[BB] = NewBB;
+    Clones.push_back(NewBB);
 
     // Rebuild SSA form by inserting missing phi nodes at merge points.
     SmallVector<PHINode *, 8> NewPHIs;
@@ -136,6 +198,10 @@ bool BasicBlockDuplicate::process(Function &F, LLVMContext &Ctx,
       }
     }
   }
+
+  // Done once SSA form has been rebuilt everywhere: the PHI nodes inserted
+  // above decide whether a given head can be bypassed or not.
+  redirectClonesToClonedSuccessors(Clones, CloneOf);
 
   SDEBUG("[{}] Basic blocks duplicated: {}", name(), ToDup.size());
   return true;
