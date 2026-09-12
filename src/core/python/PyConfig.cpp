@@ -28,32 +28,60 @@ using namespace pybind11::literals;
 
 namespace omvll {
 
+static void setPythonPath(const std::string &PythonPath) {
+#if PY_VERSION_HEX >= 0x030D0000
+  // Py_SetPath was removed in Python 3.13. PYTHONPATH is consumed by the
+  // PyConfig-based initialization used by pybind11 and keeps this compatible
+  // with both the packaged standard library and its native extension modules.
+  std::string ModuleSearchPath = PythonPath;
+  ModuleSearchPath.append(":").append(PythonPath).append("/lib-dynload");
+  setenv("PYTHONPATH", ModuleSearchPath.c_str(), true);
+#else
+  wchar_t *WidePath = Py_DecodeLocale(PythonPath.c_str(), nullptr);
+  if (WidePath == nullptr) {
+    SERR("Unable to decode Python path '{}'", PythonPath);
+    return;
+  }
+  Py_SetPath(WidePath);
+  PyMem_RawFree(WidePath);
+  setenv("PYTHONHOME", PythonPath.c_str(), true);
+#endif
+}
+
 void initPythonpath() {
   if (!PyConfig::YConfig.PythonPath.empty()) {
-    Py_SetPath(Py_DecodeLocale(PyConfig::YConfig.PythonPath.c_str(), nullptr));
-    setenv("PYTHONHOME", PyConfig::YConfig.PythonPath.c_str(), true);
+    setPythonPath(PyConfig::YConfig.PythonPath);
     return;
   }
 
   if (char *Config = getenv(PyConfig::PyEnv_Key)) {
-    Py_SetPath(Py_DecodeLocale(Config, nullptr));
-    setenv("PYTHONHOME", Config, true);
+    setPythonPath(Config);
     return;
   }
 
-#if defined(__linux__)
-  if (auto *Hdl = dlopen("libpython3.10.so", RTLD_LAZY)) {
-    char Path[400];
-    int Ret = dlinfo(Hdl, RTLD_DI_ORIGIN, Path);
-    if (Ret != 0)
-      return;
-
-    std::string PythonPath = Path;
-    PythonPath.append("/python3.10");
-    Py_SetPath(Py_DecodeLocale(PythonPath.c_str(), nullptr));
-    setenv("PYTHONHOME", PythonPath.c_str(), true);
+#if defined(__linux__) || defined(__ANDROID__)
+  Dl_info Info{};
+  if (dladdr((void *)&Py_Initialize, &Info) == 0 || Info.dli_fname == nullptr)
     return;
-  }
+
+  std::string PythonPath = Info.dli_fname;
+  const size_t Separator = PythonPath.find_last_of('/');
+  if (Separator == std::string::npos)
+    return;
+  PythonPath.resize(Separator);
+
+#if defined(__ANDROID__)
+  // The Termux bundle stores libpython in lib/ and the standard library in
+  // the sibling python/pythonX.Y directory.
+  PythonPath.append("/../python/");
+#else
+  PythonPath.append("/");
+#endif
+  PythonPath.append("python")
+      .append(std::to_string(PY_MAJOR_VERSION))
+      .append(".")
+      .append(std::to_string(PY_MINOR_VERSION));
+  setPythonPath(PythonPath);
 #endif
 }
 

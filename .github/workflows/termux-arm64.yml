@@ -1,0 +1,114 @@
+name: Termux ARM64 O-MVLL
+
+on:
+  workflow_dispatch:
+    inputs:
+      ndk_revision:
+        description: Android NDK revision
+        required: true
+        default: r29
+        type: string
+      android_api:
+        description: Minimum Android API
+        required: true
+        default: "25"
+        type: string
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/termux-arm64.yml
+      - scripts/termux-arm64/**
+      - src/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: termux-arm64-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Dynamic Clang + O-MVLL (arm64-v8a)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    env:
+      NDK_REVISION: ${{ inputs.ndk_revision || 'r29' }}
+      ANDROID_API: ${{ inputs.android_api || '25' }}
+      LLVM_CUSTOM_COMMIT: 5ba9b351d129c9847a3fd79a48ae08e5986001f3
+      PYTHON_VERSION: 3.13.14
+      PYBIND11_VERSION: 2.13.6
+      SPDLOG_VERSION: 1.10.0
+      OMVLL_WORK_ROOT: /mnt/omvll-termux-arm64
+
+    steps:
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            aria2 autoconf automake build-essential cmake curl file git \
+            libbz2-dev libffi-dev liblzma-dev libncurses-dev libreadline-dev \
+            libsqlite3-dev libssl-dev libtool ninja-build patchelf pkg-config \
+            python3 python3-dev python3-venv unzip xz-utils \
+            zlib1g-dev
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+          df -h / /mnt
+
+      - name: Maximize runner disk
+        uses: easimon/maximize-build-space@v10
+        with:
+          root-reserve-mb: 16384
+          swap-size-mb: 4096
+          remove-dotnet: "true"
+          remove-android: "false"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          build-mount-path: /mnt
+
+      - name: Move workspace to build disk
+        run: |
+          sudo mkdir -p \
+            /mnt/omvll-workspace \
+            /mnt/omvll-termux-arm64 \
+            /mnt/omvll-tmp
+          sudo chown -R "$(id -u):$(id -g)" \
+            /mnt/omvll-workspace \
+            /mnt/omvll-termux-arm64 \
+            /mnt/omvll-tmp
+          rmdir "$GITHUB_WORKSPACE"
+          ln -s /mnt/omvll-workspace "$GITHUB_WORKSPACE"
+          echo "TMPDIR=/mnt/omvll-tmp" >> "$GITHUB_ENV"
+          df -h / /mnt
+
+      - name: Check out O-MVLL
+        uses: actions/checkout@v4
+
+      - name: Verify checkout and Java
+        run: |
+          test -f scripts/termux-arm64/build.sh
+          java -version
+          df -h / /mnt
+
+      - name: Build Termux ARM64 bundle
+        run: bash scripts/termux-arm64/build.sh
+
+      - name: Show ELF verification report
+        if: always()
+        run: |
+          if [[ -f dist/termux-arm64/VERIFY.txt ]]; then
+            cat dist/termux-arm64/VERIFY.txt
+          fi
+
+      - name: Upload Termux bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: omvll-termux-arm64-${{ env.NDK_REVISION }}-api${{ env.ANDROID_API }}
+          path: |
+            dist/omvll-termux-arm64-*.tar.xz
+            dist/omvll-termux-arm64-*.tar.xz.sha256
+            dist/termux-arm64/VERIFY.txt
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
