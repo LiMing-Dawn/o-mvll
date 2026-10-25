@@ -3,7 +3,7 @@ set -euo pipefail
 
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 work_root="${OMVLL_WORK_ROOT:-${RUNNER_TEMP:-/tmp}/omvll-termux-arm64}"
-ndk_revision="${NDK_REVISION:-r29d}"
+ndk_revision="${NDK_REVISION:-r29}"
 android_api="${ANDROID_API:-25}"
 llvm_custom_commit="${LLVM_CUSTOM_COMMIT:-5ba9b351d129c9847a3fd79a48ae08e5986001f3}"
 python_version="${PYTHON_VERSION:-3.13.14}"
