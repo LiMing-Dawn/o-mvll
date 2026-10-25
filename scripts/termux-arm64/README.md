@@ -12,15 +12,15 @@ drivers, `clang-omvll` and `clang++-omvll`.
 
 ```bash
 pkg install bash coreutils findutils
-tar -xJf omvll-termux-arm64-r29d-api25.tar.xz
+tar -xJf omvll-termux-arm64-r29-api25.tar.xz
 cd termux-arm64
-./install.sh "$HOME/android-ndk-r29d"
+./install.sh "$HOME/android-ndk-r29"
 ```
 
 ## Test
 
 ```bash
-export NDK="$HOME/android-ndk-r29d"
+export NDK="$HOME/android-ndk-r29"
 export OMVLL_CONFIG="$PWD/examples/omvll_config.py"
 printf 'int test_value(void){return 1;}\n' > "$PREFIX/tmp/omvll_probe.c"
 "$NDK/toolchains/llvm/prebuilt/linux-arm64/bin/clang-omvll" \
