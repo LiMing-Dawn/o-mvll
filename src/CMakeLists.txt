@@ -44,7 +44,19 @@ endif()
 find_package(LLVM ${LLVM_REQUIRED_VERSION} REQUIRED CONFIG NO_DEFAULT_PATH)
 
 set(PYTHON_VERSION "3" CACHE STRING "Python version")
-find_package(Python3 COMPONENTS Development Interpreter)
+set(OMVLL_CROSS_PYTHON_INCLUDE_DIR "" CACHE PATH
+  "Target Python include directory for cross-compilation")
+set(OMVLL_CROSS_PYTHON_LIBRARY "" CACHE FILEPATH
+  "Target Python shared library for cross-compilation")
+
+if(OMVLL_CROSS_PYTHON_INCLUDE_DIR AND OMVLL_CROSS_PYTHON_LIBRARY)
+  set(Python3_INCLUDE_DIRS "${OMVLL_CROSS_PYTHON_INCLUDE_DIR}")
+  set(Python3_LIBRARIES "${OMVLL_CROSS_PYTHON_LIBRARY}")
+  set(Python3_VERSION "cross")
+  set(Python3_EXECUTABLE "")
+else()
+  find_package(Python3 COMPONENTS Development Interpreter)
+endif()
 
 find_package(spdlog REQUIRED CONFIG)
 find_package(pybind11 REQUIRED CONFIG NO_DEFAULT_PATH)
