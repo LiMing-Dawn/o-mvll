@@ -1,6 +1,13 @@
 name: Termux ARM64 O-MVLL
 
 on:
+  push:
+    branches:
+      - agent/termux-arm64
+    paths:
+      - .github/workflows/termux-arm64.yml
+      - scripts/termux-arm64/**
+      - src/**
   workflow_dispatch:
     inputs:
       ndk_revision:
