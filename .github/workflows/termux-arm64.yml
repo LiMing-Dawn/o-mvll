@@ -13,7 +13,7 @@ on:
       ndk_revision:
         description: Android NDK revision
         required: true
-        default: r29d
+        default: r29
         type: string
       android_api:
         description: Minimum Android API
@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     env:
-      NDK_REVISION: ${{ inputs.ndk_revision || 'r29d' }}
+      NDK_REVISION: ${{ inputs.ndk_revision || 'r29' }}
       ANDROID_API: ${{ inputs.android_api || '25' }}
       LLVM_CUSTOM_COMMIT: 5ba9b351d129c9847a3fd79a48ae08e5986001f3
       PYTHON_VERSION: 3.13.14
