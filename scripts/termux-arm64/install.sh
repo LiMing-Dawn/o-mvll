@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: $0 /absolute/path/to/android-ndk-r29d"
+  echo "Usage: $0 /absolute/path/to/android-ndk-r29"
   echo "Installs a separate clang-omvll driver; the existing clang-21 is not replaced."
 }
 
